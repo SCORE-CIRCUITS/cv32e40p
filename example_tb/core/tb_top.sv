@@ -17,7 +17,7 @@ module tb_top #(
     parameter INSTR_RDATA_WIDTH = 32,
     parameter RAM_ADDR_WIDTH = 22,
     parameter BOOT_ADDR = 'h180,
-    parameter PULP_XPULP = 0,
+    parameter PULP_XPULP = 1,
     parameter PULP_CLUSTER = 0,
     parameter FPU = 0,
     parameter ZFINX = 0,
@@ -109,32 +109,35 @@ module tb_top #(
     $timeformat(-9, 0, "ns", 9);
   end : timing_format
 
-  // abort after n cycles, if we want to
+  // cycle counter and abort
   always_ff @(posedge clk, negedge rst_n) begin
     automatic int maxcycles;
-    if ($value$plusargs("maxcycles=%d", maxcycles)) begin
-      if (~rst_n) begin
-        cycle_cnt_q <= 0;
-      end else begin
-        cycle_cnt_q <= cycle_cnt_q + 1;
+    if (~rst_n) begin
+      cycle_cnt_q <= 0;
+    end else begin
+      cycle_cnt_q <= cycle_cnt_q + 1;
+      if ($value$plusargs("maxcycles=%d", maxcycles)) begin
         if (cycle_cnt_q >= maxcycles) begin
-          $fatal(2, "Simulation aborted due to maximum cycle limit");
+          $fatal(2, "Simulation aborted due to maximum cycle limit: %0d", cycle_cnt_q);
         end
       end
     end
   end
 
-  // check if we succeded
+  // check if we succeeded
   always_ff @(posedge clk, negedge rst_n) begin
     if (tests_passed) begin
+      $display("TOTAL_SIM_CYCLES: %0d", cycle_cnt_q);
       $display("ALL TESTS PASSED");
       $finish;
     end
     if (tests_failed) begin
+      $display("TOTAL_SIM_CYCLES: %0d", cycle_cnt_q);
       $display("TEST(S) FAILED!");
       $finish;
     end
     if (exit_valid) begin
+      $display("TOTAL_SIM_CYCLES: %0d", cycle_cnt_q);
       if (exit_value == 0) $display("EXIT SUCCESS");
       else $display("EXIT FAILURE: %d", exit_value);
       $finish;

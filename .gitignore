@@ -26,3 +26,8 @@ cadence_conformal
 synopsys_formality
 questa_autocheck
 reports
+
+# SCORE build & benchmark artifacts
+build_sim/
+benchmarks/*.elf
+benchmarks/*.hex
